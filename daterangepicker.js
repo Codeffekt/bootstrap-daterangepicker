@@ -56,6 +56,8 @@
         this.linkedCalendars = true;
         this.autoUpdateInput = true;
         this.alwaysShowCalendars = false;
+	this.autoRange = false;
+	this.autoRangeDuration = moment.duration(1, 'weeks'); // ndays
         this.ranges = {};
 
         this.opens = 'right';
@@ -99,7 +101,8 @@
 
         //html template for the picker UI
         if (typeof options.template !== 'string' && !(options.template instanceof $))
-            options.template = '<div class="daterangepicker dropdown-menu">' +
+            options.template = '<div' + (options.elementId ? ' id="' + options.elementId + '"' : '') +
+	    ' class="daterangepicker dropdown-menu">' +
                 '<div class="calendar left">' +
                     '<div class="daterangepicker_input">' +
                       '<input class="input-mini" type="text" name="daterangepicker_start" value="" />' +
@@ -262,6 +265,13 @@
 
         if (typeof options.alwaysShowCalendars === 'boolean')
             this.alwaysShowCalendars = options.alwaysShowCalendars;
+
+	if (typeof options.autoRange === 'boolean')
+	    this.autoRange = options.autoRange;
+
+	if (typeof options.autoRangeDuration === 'object') {
+	    this.autoRangeDuration = options.autoRangeDuration;
+	}
 
         // update day names order to firstDay
         if (this.locale.firstDay != 0) {
@@ -441,8 +451,7 @@
         } else if (this.element.is('input') && this.autoUpdateInput) {
             this.element.val(this.startDate.format(this.locale.format));
             this.element.trigger('change');
-        }
-
+        }		
     };
 
     DateRangePicker.prototype = {
@@ -1285,6 +1294,11 @@
                 }
                 this.endDate = null;
                 this.setStartDate(date.clone());
+
+		if(this.autoRange) {
+		    this.setEndDate(this.startDate.clone().add(this.autoRangeDuration));
+		}
+		
             } else if (!this.endDate && date.isBefore(this.startDate)) {
                 //special case: clicking the same date for start/end, 
                 //but the time of the end date is before the start date
